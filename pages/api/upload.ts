@@ -10,6 +10,7 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('API handler function called');
   console.log('API route hit');
   console.log('Request method:', req.method);
   console.log('Request headers:', req.headers);
@@ -76,6 +77,3 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 }
-
-// Ensure the API route is properly exported
-module.exports = handler;

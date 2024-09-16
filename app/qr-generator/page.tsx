@@ -113,14 +113,17 @@ export default function QRGenerator() {
 
         if (!response.ok) {
           let errorMessage = `Upload failed with status ${response.status}`;
+          let errorDetails = '';
           try {
             const errorData = await response.json()
             errorMessage = errorData.error || errorMessage
+            errorDetails = JSON.stringify(errorData, null, 2)
             console.error('Error data:', errorData)
           } catch (jsonError) {
             console.error('Error parsing error response:', jsonError)
+            errorDetails = 'Unable to parse error response'
           }
-          throw new Error(errorMessage)
+          throw new Error(`${errorMessage}\n\nDetails:\n${errorDetails}`)
         }
 
         let data;
