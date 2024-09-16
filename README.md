@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OI3 Tools
+
+OI3 Tools is a Next.js application that provides various utilities for the OI3 team. Currently, it includes a QR code generator tool.
+
+## Features
+
+- QR Code Generator: Create customizable QR codes with options for adding icons or background images.
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js (version 14 or later)
+- npm (comes with Node.js)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Clone the repository:
+   ```
+   git clone https://github.com/your-username/oi3-tools.git
+   cd oi3-tools
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. Install dependencies:
+   ```
+   npm install
+   ```
 
-## Learn More
+3. Run the development server:
+   ```
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project Structure
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `app/`: Contains the main pages and components of the application
+  - `page.tsx`: The home page
+  - `oi3-team-tools/`: OI3 team tools page
+  - `qr-generator/`: QR code generator tool
+- `public/`: Static assets
+- `styles/`: Global styles
 
-## Deploy on Vercel
+## Deployment
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+To deploy this website to a hosting service:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Build the project:
+   ```
+   npm run build
+   ```
+
+2. The built files will be in the `.next` directory. Upload these files to your hosting service.
+
+3. Set up your hosting service to serve a Node.js application. You may need to set the following environment variables:
+   - `NODE_ENV=production`
+   - `PORT=3000` (or the port specified by your hosting service)
+
+4. Start the application using:
+   ```
+   npm start
+   ```
+
+5. Configure your domain to point to the hosting service's provided URL.
+
+For specific instructions on deploying to different hosting platforms, please refer to the Next.js deployment documentation: https://nextjs.org/docs/deployment
+
+## Technologies Used
+
+- Next.js
+- React
+- Tailwind CSS
+- TypeScript
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
