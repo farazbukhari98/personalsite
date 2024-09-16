@@ -1,11 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { IncomingForm } from 'formidable';
 import { put } from '@vercel/blob';
-import fs from 'fs';
+import { nanoid } from 'nanoid';
 
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: {
+      sizeLimit: '4mb',
+    },
   },
 };
 
@@ -15,28 +16,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(405).json({ error: `Method ${req.method} Not Allowed` });
   }
 
-  const form = new IncomingForm();
-
-  form.parse(req, async (err, fields, files) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error parsing form data' });
-    }
-
-    const file = Array.isArray(files.file) ? files.file[0] : files.file;
+  try {
+    const { file } = req.body;
 
     if (!file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+      return res.status(400).json({ error: 'No file provided' });
     }
 
-    try {
-      const blob = await put(file.originalFilename || 'untitled', fs.createReadStream(file.filepath), {
-        access: 'public',
-      });
+    // Decode base64 file
+    const fileBuffer = Buffer.from(file.split(',')[1], 'base64');
 
-      return res.status(200).json({ url: blob.url });
-    } catch (error) {
-      console.error('Error uploading to Vercel Blob:', error);
-      return res.status(500).json({ error: 'Error uploading file' });
-    }
-  });
+    // Generate a unique filename
+    const filename = `${nanoid()}.pdf`;
+
+    // Upload to Vercel Blob Storage
+    const blob = await put(filename, fileBuffer, {
+      access: 'public',
+    });
+
+    return res.status(200).json({ url: blob.url });
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return res.status(500).json({ error: 'Error uploading file' });
+  }
 }

@@ -96,13 +96,21 @@ export default function QRGenerator() {
     if (file) {
       setIsUploading(true)
       setErrorMessage("")
-      const formData = new FormData()
-      formData.append('file', file)
 
       try {
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result as string)
+          reader.onerror = reject
+          reader.readAsDataURL(file)
+        })
+
         const response = await fetch('/api/upload', {
           method: 'POST',
-          body: formData,
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ file: base64 }),
         })
 
         if (!response.ok) {
