@@ -21,9 +21,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: 'Error parsing form data', details: err.message });
     }
 
-    const file = files.file as formidable.File;
-    if (!file) {
-      return res.status(400).json({ error: 'No file uploaded' });
+    let file: formidable.File | undefined;
+    if (Array.isArray(files.file)) {
+      file = files.file[0];
+    } else {
+      file = files.file;
+    }
+
+    if (!file || !('filepath' in file)) {
+      return res.status(400).json({ error: 'No valid file uploaded' });
     }
 
     try {
