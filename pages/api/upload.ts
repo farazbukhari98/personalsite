@@ -21,6 +21,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(500).json({ error: 'Error parsing form data', details: err.message });
     }
 
+    console.log('Parsed form data:', { fields, files });
+
     let file: formidable.File | undefined;
     if (Array.isArray(files.file)) {
       file = files.file[0];
@@ -29,11 +31,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     if (!file || !('filepath' in file)) {
-      return res.status(400).json({ error: 'No valid file uploaded' });
+      console.error('No valid file uploaded. Files received:', files);
+      return res.status(400).json({ error: 'No valid file uploaded', filesReceived: files });
     }
 
     try {
       console.log('Attempting to upload file:', file.newFilename);
+      console.log('File details:', {
+        originalFilename: file.originalFilename,
+        filepath: file.filepath,
+        mimetype: file.mimetype,
+        size: file.size,
+      });
+
       const blob = await put(file.newFilename, fs.createReadStream(file.filepath), {
         access: 'public',
       });
@@ -42,7 +52,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       res.status(200).json({ url: blob.url });
     } catch (error) {
       console.error('Error uploading to Vercel Blob:', error);
-      res.status(500).json({ error: 'Error uploading file', details: error instanceof Error ? error.message : String(error) });
+      if (error instanceof Error) {
+        console.error('Error stack:', error.stack);
+      }
+      res.status(500).json({
+        error: 'Error uploading file',
+        details: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
     }
   });
 }
