@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import QRCode from 'qrcode'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,24 +11,80 @@ import { ImageIcon, ImagePlusIcon, FileIcon } from "lucide-react"
 
 export default function QRGenerator() {
   const [link, setLink] = useState("")
-  const [uploadedImage, setUploadedImage] = useState(null)
-  const [uploadedDocument, setUploadedDocument] = useState(null)
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+  const [uploadedDocument, setUploadedDocument] = useState<File | null>(null)
   const [imageUse, setImageUse] = useState("icon")
   const [opacity, setOpacity] = useState(50)
   const [qrColor, setQrColor] = useState("#000000")
   const [isUploading, setIsUploading] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
-  const canvasRef = useRef(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  const applyIconOverlay = useCallback((canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, img: HTMLImageElement) => {
+    const size = canvas.width / 4
+    const x = (canvas.width - size) / 2
+    const y = (canvas.height - size) / 2
+    ctx.drawImage(img, x, y, size, size)
+  }, [])
+
+  const applyBackgroundOverlay = useCallback((canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, img: HTMLImageElement) => {
+    ctx.globalAlpha = opacity / 100
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+    ctx.globalAlpha = 1.0
+    const qrCodeImg = new Image()
+    qrCodeImg.onload = () => {
+      ctx.drawImage(qrCodeImg, 0, 0, canvas.width, canvas.height)
+    }
+    qrCodeImg.src = canvas.toDataURL()
+  }, [opacity])
+
+  const applyImageOverlay = useCallback(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    const img = new Image()
+    img.onload = () => {
+      if (imageUse === 'icon') {
+        applyIconOverlay(canvas, ctx, img)
+      } else {
+        applyBackgroundOverlay(canvas, ctx, img)
+      }
+    }
+    img.src = uploadedImage as string
+  }, [imageUse, uploadedImage, applyIconOverlay, applyBackgroundOverlay])
+
+  const generateQRCode = useCallback(async () => {
+    if (link && canvasRef.current) {
+      try {
+        await QRCode.toCanvas(canvasRef.current, link, {
+          width: 256,
+          margin: 1,
+          color: {
+            dark: qrColor,
+            light: '#ffffff',
+          },
+        })
+
+        if (uploadedImage) {
+          applyImageOverlay()
+        }
+      } catch (err) {
+        console.error(err)
+        setErrorMessage('Failed to generate QR code. Please try again.')
+      }
+    }
+  }, [link, qrColor, uploadedImage, applyImageOverlay])
 
   useEffect(() => {
     generateQRCode()
-  }, [link, uploadedImage, imageUse, opacity, qrColor, generateQRCode])
+  }, [generateQRCode])
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = (e: ProgressEvent<FileReader>) => {
         setUploadedImage(e.target?.result as string)
       }
       reader.readAsDataURL(file)
@@ -59,65 +115,11 @@ export default function QRGenerator() {
         setLink(`${window.location.origin}${data.filePath}`)
       } catch (error) {
         console.error('Error uploading document:', error)
-        setErrorMessage(error.message || 'Failed to upload document. Please try again.')
+        setErrorMessage(error instanceof Error ? error.message : 'Failed to upload document. Please try again.')
       } finally {
         setIsUploading(false)
       }
     }
-  }
-
-  const generateQRCode = async () => {
-    if (link && canvasRef.current) {
-      try {
-        await QRCode.toCanvas(canvasRef.current, link, {
-          width: 256,
-          margin: 1,
-          color: {
-            dark: qrColor,
-            light: '#ffffff',
-          },
-        })
-
-        if (uploadedImage) {
-          applyImageOverlay()
-        }
-      } catch (err) {
-        console.error(err)
-        setErrorMessage('Failed to generate QR code. Please try again.')
-      }
-    }
-  }
-
-  const applyImageOverlay = () => {
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    const img = new Image()
-    img.onload = () => {
-      if (imageUse === 'icon') {
-        applyIconOverlay(canvas, ctx, img)
-      } else {
-        applyBackgroundOverlay(canvas, ctx, img)
-      }
-    }
-    img.src = uploadedImage
-  }
-
-  const applyIconOverlay = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, img: HTMLImageElement) => {
-    const size = canvas.width / 4
-    const x = (canvas.width - size) / 2
-    const y = (canvas.height - size) / 2
-    ctx.drawImage(img, x, y, size, size)
-  }
-
-  const applyBackgroundOverlay = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, img: HTMLImageElement) => {
-    ctx.globalAlpha = opacity / 100
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-    ctx.globalAlpha = 1.0
-    const qrCodeImg = new Image()
-    qrCodeImg.onload = () => {
-      ctx.drawImage(qrCodeImg, 0, 0, canvas.width, canvas.height)
-    }
-    qrCodeImg.src = canvas.toDataURL()
   }
 
   return (
