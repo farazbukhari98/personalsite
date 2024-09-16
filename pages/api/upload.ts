@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { IncomingForm } from 'formidable';
+import { IncomingForm, File } from 'formidable';
 import { put } from '@vercel/blob';
 import fs from 'fs';
 
@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     try {
-      const blob = await put(file.name, fs.createReadStream(file.path), {
+      const blob = await put(file.originalFilename || 'untitled', fs.createReadStream(file.filepath), {
         access: 'public',
       });
 
