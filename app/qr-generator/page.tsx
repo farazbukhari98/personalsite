@@ -99,49 +99,24 @@ export default function QRGenerator() {
       const formData = new FormData()
       formData.append('file', file)
 
-      console.log('Uploading file:', file.name)
-
       try {
-        console.log('Sending POST request to /api/upload')
         const response = await fetch('/api/upload', {
           method: 'POST',
           body: formData,
         })
 
-        console.log('Response status:', response.status)
-        console.log('Response headers:', response.headers)
-
         if (!response.ok) {
-          let errorMessage = `Upload failed with status ${response.status}`;
-          let errorDetails = '';
-          try {
-            const errorData = await response.json()
-            errorMessage = errorData.error || errorMessage
-            errorDetails = JSON.stringify(errorData, null, 2)
-            console.error('Error data:', errorData)
-          } catch (jsonError) {
-            console.error('Error parsing error response:', jsonError)
-            errorDetails = 'Unable to parse error response'
-          }
-          throw new Error(`${errorMessage}\n\nDetails:\n${errorDetails}`)
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Upload failed')
         }
 
-        let data;
-        try {
-          data = await response.json()
-          console.log('Response data:', data)
-        } catch (jsonError) {
-          console.error('Error parsing success response:', jsonError)
-          throw new Error('Invalid response from server')
-        }
-
+        const data = await response.json()
         if (!data.url) {
           throw new Error('No URL returned from server')
         }
 
         setUploadedDocument(file)
-        setLink(data.url) // Use the Vercel Blob URL directly
-        console.log('File uploaded successfully. URL:', data.url)
+        setLink(data.url)
       } catch (error) {
         console.error('Error uploading document:', error)
         setErrorMessage(error instanceof Error ? error.message : 'Failed to upload document. Please try again.')
