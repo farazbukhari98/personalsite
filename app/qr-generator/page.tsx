@@ -112,7 +112,7 @@ export default function QRGenerator() {
 
         const data = await response.json()
         setUploadedDocument(file)
-        setLink(`${window.location.origin}${data.filePath}`)
+        setLink(data.url) // Use the Vercel Blob URL directly
       } catch (error) {
         console.error('Error uploading document:', error)
         setErrorMessage(error instanceof Error ? error.message : 'Failed to upload document. Please try again.')

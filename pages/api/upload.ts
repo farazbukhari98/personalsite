@@ -1,51 +1,39 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import formidable from 'formidable'
-import fs from 'fs'
-import path from 'path'
+import { NextApiRequest, NextApiResponse } from 'next';
+import { put } from '@vercel/blob';
+import formidable from 'formidable';
+import fs from 'fs';
 
 export const config = {
   api: {
     bodyParser: false,
   },
-}
-
-const uploadDir = path.join(process.cwd(), 'public', 'uploads')
+};
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' })
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  try {
-    await fs.promises.mkdir(uploadDir, { recursive: true })
+  const form = new formidable.IncomingForm();
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error parsing form data' });
+    }
 
-    const form = formidable({
-      uploadDir,
-      keepExtensions: true,
-      maxFiles: 1,
-      maxFileSize: 10 * 1024 * 1024, // 10MB
-    })
+    const file = files.file as formidable.File;
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
 
-    form.parse(req, (err, fields, files) => {
-      if (err) {
-        console.error('Error parsing form:', err)
-        return res.status(500).json({ error: 'Error uploading file' })
-      }
+    try {
+      const blob = await put(file.newFilename, fs.createReadStream(file.filepath), {
+        access: 'public',
+      });
 
-      const file = Array.isArray(files.file) ? files.file[0] : files.file
-      if (!file) {
-        console.error('No file uploaded')
-        return res.status(400).json({ error: 'No file uploaded' })
-      }
-
-      const fileName = file.newFilename
-      const filePath = path.join('/uploads', fileName)
-
-      console.log('File uploaded successfully:', filePath)
-      return res.status(200).json({ filePath })
-    })
-  } catch (error) {
-    console.error('Error in upload handler:', error)
-    return res.status(500).json({ error: 'Error uploading file' })
-  }
+      res.status(200).json({ url: blob.url });
+    } catch (error) {
+      console.error('Error uploading to Vercel Blob:', error);
+      res.status(500).json({ error: 'Error uploading file' });
+    }
+  });
 }
