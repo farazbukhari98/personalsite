@@ -127,7 +127,11 @@ export default function QRGenerator() {
         setLink(data.url)
       } catch (error) {
         console.error('Error uploading document:', error)
-        setErrorMessage(error instanceof Error ? error.message : 'Failed to upload document. Please try again.')
+        if (error instanceof Error) {
+          setErrorMessage(`Failed to upload document: ${error.message}`)
+        } else {
+          setErrorMessage('Failed to upload document. Please try again.')
+        }
       } finally {
         setIsUploading(false)
       }

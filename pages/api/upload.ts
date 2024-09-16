@@ -30,6 +30,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     // Decode base64 file
     const base64Data = file.split(',')[1];
+    if (!base64Data) {
+      console.error('Invalid file data format');
+      return res.status(400).json({ error: 'Invalid file data format' });
+    }
+
     const fileBuffer = Buffer.from(base64Data, 'base64');
 
     console.log('File decoded, size:', fileBuffer.length);
@@ -51,7 +56,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error('Error in upload handler:', error);
     if (error instanceof Error) {
       console.error('Error stack:', error.stack);
+      return res.status(500).json({ error: 'Error uploading file', details: error.message, stack: error.stack });
+    } else {
+      return res.status(500).json({ error: 'Error uploading file', details: String(error) });
     }
-    return res.status(500).json({ error: 'Error uploading file', details: error instanceof Error ? error.message : String(error) });
   }
 }
