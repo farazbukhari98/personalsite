@@ -22,21 +22,21 @@ export default function QRGenerator() {
 
   useEffect(() => {
     generateQRCode()
-  }, [link, uploadedImage, imageUse, opacity, qrColor])
+  }, [link, uploadedImage, imageUse, opacity, qrColor, generateQRCode])
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0]
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (file) {
       const reader = new FileReader()
       reader.onload = (e) => {
-        setUploadedImage(e.target.result)
+        setUploadedImage(e.target?.result as string)
       }
       reader.readAsDataURL(file)
     }
   }
 
-  const handleDocumentUpload = async (event) => {
-    const file = event.target.files[0]
+  const handleDocumentUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
     if (file) {
       setIsUploading(true)
       setErrorMessage("")
@@ -102,14 +102,14 @@ export default function QRGenerator() {
     img.src = uploadedImage
   }
 
-  const applyIconOverlay = (canvas, ctx, img) => {
+  const applyIconOverlay = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, img: HTMLImageElement) => {
     const size = canvas.width / 4
     const x = (canvas.width - size) / 2
     const y = (canvas.height - size) / 2
     ctx.drawImage(img, x, y, size, size)
   }
 
-  const applyBackgroundOverlay = (canvas, ctx, img) => {
+  const applyBackgroundOverlay = (canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, img: HTMLImageElement) => {
     ctx.globalAlpha = opacity / 100
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
     ctx.globalAlpha = 1.0
