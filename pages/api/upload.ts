@@ -1,5 +1,4 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import formidable from 'formidable';
 import { IncomingForm } from 'formidable';
 import { PUT } from '@vercel/blob';
 import fs from 'fs';
