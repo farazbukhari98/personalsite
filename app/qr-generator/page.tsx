@@ -106,11 +106,28 @@ export default function QRGenerator() {
         })
 
         if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Upload failed')
+          let errorMessage = `Upload failed with status ${response.status}`;
+          try {
+            const errorData = await response.json()
+            errorMessage = errorData.error || errorMessage
+          } catch (jsonError) {
+            console.error('Error parsing error response:', jsonError)
+          }
+          throw new Error(errorMessage)
         }
 
-        const data = await response.json()
+        let data;
+        try {
+          data = await response.json()
+        } catch (jsonError) {
+          console.error('Error parsing success response:', jsonError)
+          throw new Error('Invalid response from server')
+        }
+
+        if (!data.url) {
+          throw new Error('No URL returned from server')
+        }
+
         setUploadedDocument(file)
         setLink(data.url) // Use the Vercel Blob URL directly
       } catch (error) {
