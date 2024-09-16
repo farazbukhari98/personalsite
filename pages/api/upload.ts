@@ -10,13 +10,17 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('API route hit');
   console.log('Request method:', req.method);
   console.log('Request headers:', req.headers);
+  console.log('Request body:', req.body);
 
   if (req.method !== 'POST') {
     console.error(`Method not allowed: ${req.method}`);
     return res.status(405).json({ error: 'Method not allowed', method: req.method });
   }
+
+  console.log('POST request received, proceeding with form parsing');
 
   const form = new formidable.IncomingForm();
   form.parse(req, async (err, fields, files) => {
@@ -72,3 +76,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
   });
 }
+
+// Ensure the API route is properly exported
+module.exports = handler;
