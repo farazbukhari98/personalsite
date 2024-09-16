@@ -10,8 +10,12 @@ export const config = {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  console.log('Request method:', req.method);
+  console.log('Request headers:', req.headers);
+
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    console.error(`Method not allowed: ${req.method}`);
+    return res.status(405).json({ error: 'Method not allowed', method: req.method });
   }
 
   const form = new formidable.IncomingForm();
@@ -30,9 +34,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       file = files.file;
     }
 
-    if (!file || !('filepath' in file)) {
-      console.error('No valid file uploaded. Files received:', files);
-      return res.status(400).json({ error: 'No valid file uploaded', filesReceived: files });
+    if (!file) {
+      console.error('No file uploaded. Files received:', files);
+      return res.status(400).json({ error: 'No file uploaded', filesReceived: files });
+    }
+
+    if (!('filepath' in file)) {
+      console.error('Invalid file object. File details:', file);
+      return res.status(400).json({ error: 'Invalid file object', fileDetails: file });
     }
 
     try {
